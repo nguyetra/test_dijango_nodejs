@@ -24,7 +24,7 @@ def save_game(request):
 
         # tries to create the message and save it in the db
         try:
-            msg = Message.objects.create(gameId=msg_obj['gameId'], player1=msg_obj['player1'], player2=msg_obj['player2'], winner = msg_obj['winner'], history = msg_obj['history'], note = msg_obj['note'])
+            msg = Message.objects.create(gameId=msg_obj['gameId'], player1=msg_obj['player1'], player2=msg_obj['player2'], winner = msg_obj['winner'], history = msg_obj['history'])
             msg.save()
         # if some error occurs it will print the error in the django console and return a HttpResponse
         # containing a error value, which will be received by nodejs socket.io

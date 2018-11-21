@@ -97,9 +97,9 @@ io.on('connection', function (socket) {
             }
         };
 
-        msg[gameId] = game.Id;
-        msg[player1] = socket.username;
-        msg[player2] = oppDict[socket.username];
+        msg['gameId'] = game.Id;
+        msg['player1'] = socket.username;
+        msg['player2'] = oppDict[socket.username];
 
         // prepares to send
         xhttp.open('POST', url, true);

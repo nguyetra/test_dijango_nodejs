@@ -3,7 +3,7 @@ var host = 'localhost';
 var nodejs_port = '4000';
 
 var game, board, socket, playerColor, nameColor;
-var  checkLogout = '';
+var checkLogout = '';
 
 $(function () {
     socket = io(host + ':' + nodejs_port);
@@ -11,6 +11,7 @@ $(function () {
     //////////////////////////////
     // Socket.io handlers
     ////////////////////////////// 
+
 
     socket.on('login', function (msg) {
         usersOnline = msg;
@@ -55,14 +56,9 @@ $(function () {
     
     socket.on('logout', function (msg) {
         checkLogout = msg.username;
-        winner = msg.username !==  username ? username : msg.username,
+        winner = checkLogout !==  username ? username : checkLogout;
 
-        msgObject = {
-            winner = winner,    
-            history = game.history(),
-            note = checkLogout + 'is quitted'
-        };
-        socket.emit('endgame', msgObject)
+        socket.emit('endgame', {'winner': winner, 'history': game.history.toString(), note : checkLogout });
         
         game = null;
         board.destroy();
@@ -74,6 +70,7 @@ $(function () {
     //////////////////////////////
     // Menus
     ////////////////////////////// 
+    
     username = $('#username').val();
     socket.emit('login', username);
     console.log('user ', username);
@@ -132,10 +129,13 @@ var updateStatus = function () {
 
         if (game.in_checkmate() === true) {
             status = 'Game over, ' + moveUser + ' is in checkmate.';
+            winner = moveUser !==  username ? username : moveUser;
+            socket.emit('endgame', {'winner': winner, 'history': game.history.toString(), note : '' });
         }
 
         else if (game.in_draw() === true) {
             status = 'Game over, drawn position';
+            socket.emit('endgame', {'winner': 'no winner', 'history': game.history.toString(), note : 'drawn position'});
         }
 
         else {
