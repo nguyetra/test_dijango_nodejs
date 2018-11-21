@@ -82,7 +82,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on('endgame', function(msg){
-        var url = 'http://' + host +':' + port + '/save_message/';
+        var url = 'http://' + host +':' + port + '/save_game/';
 
         // when the request finishes
         xhttp.onreadystatechange = function() {
@@ -96,10 +96,6 @@ io.on('connection', function (socket) {
                     console.log("the message was posted successfully");
             }
         };
-
-        msg['gameId'] = game.Id;
-        msg['player1'] = socket.username;
-        msg['player2'] = oppDict[socket.username];
 
         // prepares to send
         xhttp.open('POST', url, true);

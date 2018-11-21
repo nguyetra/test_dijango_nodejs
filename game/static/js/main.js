@@ -4,6 +4,7 @@ var nodejs_port = '4000';
 
 var game, board, socket, playerColor, nameColor;
 var checkLogout = '';
+var gameId, player1, player2;
 
 $(function () {
     socket = io(host + ':' + nodejs_port);
@@ -34,6 +35,7 @@ $(function () {
 
     //start game with color user
     socket.on('joingame', function (msg) {
+
         nameColor = msg.game.setColorUser;
         playerColor = nameColor[username];
         initGame();
@@ -42,6 +44,10 @@ $(function () {
         oppDict = msg.game.oppDict[username];
         $('#opponentname').append(oppDict);
         $('#page-lobby').hide();
+
+        gameId = msg.game.gameId;
+        player1 = username;
+        player2 = oppDict;
 
     });
 
@@ -57,8 +63,8 @@ $(function () {
     socket.on('logout', function (msg) {
         checkLogout = msg.username;
         winner = checkLogout !==  username ? username : checkLogout;
-
-        socket.emit('endgame', {'winner': winner, 'history': game.history.toString(), note : checkLogout });
+        history= game.history();
+        socket.emit('endgame', {'gameId':gameId,'player1':player1, 'player2':player2, 'winner': winner, 'history': history.toString(), note : checkLogout });
         
         game = null;
         board.destroy();
@@ -130,12 +136,14 @@ var updateStatus = function () {
         if (game.in_checkmate() === true) {
             status = 'Game over, ' + moveUser + ' is in checkmate.';
             winner = moveUser !==  username ? username : moveUser;
-            socket.emit('endgame', {'winner': winner, 'history': game.history.toString(), note : '' });
+            history= game.history();
+            socket.emit('endgame', {'gameId':gameId,'player1':player1, 'player2':player2, 'winner': winner, 'history': history.toString(), note : '' });
         }
 
         else if (game.in_draw() === true) {
             status = 'Game over, drawn position';
-            socket.emit('endgame', {'winner': 'no winner', 'history': game.history.toString(), note : 'drawn position'});
+            history= game.history();
+            socket.emit('endgame', {'gameId':gameId,'player1':player1, 'player2':player2, 'winner': 'no winner', 'history': history.toString(), note : 'drawn position'});
         }
 
         else {
