@@ -3,17 +3,36 @@ var host = 'localhost';
 var nodejs_port = '4000';
 
 var game, board, socket, playerColor, nameColor;
+var  checkLogout = '';
 
 $(function () {
     socket = io(host + ':' + nodejs_port);
 
-    //login
-    username = $('#username').val();
-    socket.emit('login',{username: username});
-    console.log('user ',username);
+    //////////////////////////////
+    // Socket.io handlers
+    ////////////////////////////// 
+
+    socket.on('login', function (msg) {
+        usersOnline = msg;
+        updateUserList();
+    });
+
+    socket.on('joinlobby', function (msg) {
+        usersOnline.push(msg);
+        updateUserList();
+    });
+
+    socket.on('leavelobby', function (msg) {
+        for (var i = 0; i < usersOnline.length; i++) {
+            if (usersOnline[i] === msg) {
+                usersOnline.splice(i, 1);
+            }
+        }
+        updateUserList();
+    });
 
     //start game with color user
-    socket.on('join', function (msg) {
+    socket.on('joingame', function (msg) {
         nameColor = msg.game.setColorUser;
         playerColor = nameColor[username];
         initGame();
@@ -21,6 +40,8 @@ $(function () {
         console.log(msg.game.oppDict);
         oppDict = msg.game.oppDict[username];
         $('#opponentname').append(oppDict);
+        $('#page-lobby').hide();
+        
     });
 
     //draw board with new move
@@ -31,6 +52,32 @@ $(function () {
         updateStatus();
 
     });
+    socket.on('logout', function (msg) {
+        game = null;
+        board.destroy();
+        socket.disconnect();
+        checkLogout = msg.username;
+        updateStatus();
+    });
+
+    //////////////////////////////
+    // Menus
+    ////////////////////////////// 
+    username = $('#username').val();
+    socket.emit('login', username);
+    console.log('user ', username);
+    $('#page-lobby').show();
+
+    var updateUserList = function () {
+        document.getElementById('userList').innerHTML = '';
+        usersOnline.forEach(function (user) {
+            $('#userList').append($('<button>')
+                .text(user)
+                .on('click', function () {
+                    socket.emit('invite', user);
+                }));
+        });
+    };
 });
 
 
@@ -64,30 +111,34 @@ var onDragStart = function (source, piece, position, orientation) {
 
 //show status
 var updateStatus = function () {
-    var status = '';
+    if (checkLogout === '') {
+        var status = '';
 
-    var moveUser = nameColor['white'];
-    if (game.turn() === 'b') {
-        moveUser = nameColor['black'];
-    }
+        var moveUser = nameColor['white'];
+        if (game.turn() === 'b') {
+            moveUser = nameColor['black'];
+        }
 
-    if (game.in_checkmate() === true) {
-        status = 'Game over, ' + moveUser + ' is in checkmate.';
-    }
+        if (game.in_checkmate() === true) {
+            status = 'Game over, ' + moveUser + ' is in checkmate.';
+        }
 
-    else if (game.in_draw() === true) {
-        status = 'Game over, drawn position';
-    }
+        else if (game.in_draw() === true) {
+            status = 'Game over, drawn position';
+        }
 
-    else {
-        status = moveUser + ' to move';
+        else {
+            status = moveUser + ' to move';
 
 
-        if (game.in_check() === true) {
-            status += ', ' + moveUser + ' is in check';
+            if (game.in_check() === true) {
+                status += ', ' + moveUser + ' is in check';
+            }
         }
     }
-
+    else {
+        var status = 'Game over, you win,  ' + checkLogout + ' is quitted.';
+    }
     statusEl.html(status);
 };
 

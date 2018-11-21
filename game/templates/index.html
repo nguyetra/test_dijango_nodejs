@@ -9,10 +9,18 @@
   <link rel="stylesheet" href='{% static "css/main.css" %}' type="text/css" />
 </head>
 
-<body> 
-  You: {{user.username}}!!<input id='username' value ='{{user.username}}' type="hidden">
+<body>
+
+  You: {{user.username}}!!<input id='username' value='{{user.username}}' type="hidden">
   Opponent: <label id='opponentname'></label>
-  
+
+  <div id='page-lobby'>
+    <div id='userList'>
+      <button id='player1'>Player 1</button>
+      <button id='player2'>Player 2</button>
+    </div>
+  </div>
+
   <div class='boardGame' id='board'></div>
 
   <!-- <script src="/static/js/socket.io-2.1.1.js"></script>

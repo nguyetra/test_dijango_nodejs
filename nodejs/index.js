@@ -7,50 +7,57 @@ var port = '8000';
 
 //set users
 var games = [];
-var waitingUsers = [];
+var waitingUsers = {};
+var users = {};
 
 
 io.on('connection', function (socket) {
 
     //set user
     socket.on('login', function (msg) {
-        socket.username = msg.username;
+        socket.username = msg;
         console.log(socket.username + ' connect');
+        socket.emit('login', Object.keys(waitingUsers));
 
-        //set 2 user play together --> show board game
-        if (waitingUsers.length > 0) {
-            var opponent = waitingUsers.pop();
-            
-            var oppDict = {};
-            oppDict[opponent.username] = socket.username;
-            oppDict[socket.username] = opponent.username;
+        users[socket.username] = socket;
+        waitingUsers[socket.username] = socket;
 
-            var setColorUser = {};
-            setColorUser[opponent.username] = 'white';
-            setColorUser[socket.username] = 'black';
-            setColorUser['white'] = opponent.username;
-            setColorUser['black'] = socket.username;
+        socket.broadcast.emit('joinlobby', socket.username);
+    });
+    socket.on('invite', function (msg) {
+        console.log('got an invite from: ', msg);
 
-            var game = {
-                Id: Math.floor((Math.random() * 100) + 1),
-                oppDict: oppDict,
-                setColorUser : setColorUser
-            };
+        socket.broadcast.emit('leavelobby', socket.username);
+        socket.broadcast.emit('leavelobby', msg);
 
-            socket.gameId = game.Id;
-            opponent.gameId = game.Id;
+        delete waitingUsers[socket.username];
+        delete waitingUsers[msg];
 
-            console.log('starting game: ' + game.Id);
-            opponent.emit('join', { game: game});
-            socket.emit('join', { game: game});
 
-            games.push(game);
-        }
-        //1 user --> waiting
-        else {
-            console.log(socket.username + ' joing lobby');
-            waitingUsers.push(socket);
-        }
+        var oppDict = {};
+        oppDict[msg] = socket.username;
+        oppDict[socket.username] = msg;
+
+        var setColorUser = {};
+        setColorUser[socket.username] = 'white';
+        setColorUser[msg] = 'black';
+        setColorUser['white'] = socket.username;
+        setColorUser['black'] = msg;
+
+        var game = {
+            Id: Math.floor((Math.random() * 100) + 1),
+            oppDict: oppDict,
+            setColorUser: setColorUser
+        };
+
+        socket.gameId = game.Id;
+        users[msg].gameId = game.Id;
+
+        console.log('starting game: ' + game.Id);
+        socket.emit('joingame', { game: game });
+        users[msg].emit('joingame', { game: game });
+
+        games.push(game);
     });
 
 
@@ -59,4 +66,25 @@ io.on('connection', function (socket) {
         socket.broadcast.emit('move', msg);
     });
 
+    socket.on('disconnect', function () {
+        console.log(socket.username + ' disconnected');
+
+        removeGame(socket.gameId);
+
+        socket.broadcast.emit('logout', {
+            username: socket.username,
+            gameId: socket.gameId
+        });
+    });
+
+    var removeGame = function (id) {
+        console.log("removing game: " + id);
+
+        for (var i = 0; i < games.length; i++) {
+            if (games[i].id === id) {
+                games.splice(i, 1);
+                console.log("removed it.")
+            }
+        }
+    }
 });
