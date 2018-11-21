@@ -1,0 +1,44 @@
+{% load static %}
+
+<!doctype html>
+<html>
+
+<head>
+  <title>Real Chess</title>
+  <link rel="stylesheet" href='{% static "css/chessboard-0.3.0.min.css" %}' type="text/css" />
+  <link rel="stylesheet" href='{% static "css/main.css" %}' type="text/css" />
+</head>
+
+<body> 
+  You: {{user.username}}!!<input id='username' value ='{{user.username}}' type="hidden">
+  Opponent: <label id='opponentname'></label>
+  
+  <div class='boardGame' id='board'></div>
+
+  <!-- <script src="/static/js/socket.io-2.1.1.js"></script>
+  <script src="/static/js/jquery-1.11.1.js"></script> -->
+
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="http://localhost:4000/socket.io/socket.io.js"></script>
+
+
+
+  <!-- libary of chess -->
+  <script src='{% static "js/chess.min.js" %}'></script>
+  <script src='{% static "js/chessboard-0.3.0.min.js" %}'></script>
+  <script src='{% static "js/main.js" %}'></script>
+
+  Status: <span id="status"></span>
+
+  <table id="move-history" class="move-history">
+    <thead>
+      <tr>
+        <th>From</th>
+        <th>To</th>
+        <th>Piece</th>
+      </tr>
+    </thead>
+  </table>
+</body>
+
+</html>
