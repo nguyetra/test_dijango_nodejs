@@ -90,7 +90,7 @@ io.on('connection', function (socket) {
             if(this.readyState === 4 && this.status === 200) {
                 // if the value returned from the view is error
                 if(xhttp.responseText === "error")
-                    console.log("error saving message");
+                    console.log("error saving game");
                 // if the value returned from the view is success
                 else if(xhttp.responseText === "success")
                     console.log("the message was posted successfully");
