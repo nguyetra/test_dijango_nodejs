@@ -41,7 +41,7 @@ $(function () {
         oppDict = msg.game.oppDict[username];
         $('#opponentname').append(oppDict);
         $('#page-lobby').hide();
-        
+
     });
 
     //draw board with new move
@@ -52,11 +52,22 @@ $(function () {
         updateStatus();
 
     });
+    
     socket.on('logout', function (msg) {
+        checkLogout = msg.username;
+        winner = msg.username !==  username ? username : msg.username,
+
+        msgObject = {
+            winner = winner,    
+            history = game.history(),
+            note = checkLogout + 'is quitted'
+        };
+        socket.emit('endgame', msgObject)
+        
         game = null;
         board.destroy();
         socket.disconnect();
-        checkLogout = msg.username;
+        
         updateStatus();
     });
 

@@ -1,5 +1,9 @@
 var http = require('http').createServer().listen(4000);
 var io = require('socket.io')(http);
+var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+
+// creating an instance of XMLHttpRequest
+var xhttp = new XMLHttpRequest();
 
 // host of the server
 var host = 'localhost';
@@ -75,6 +79,32 @@ io.on('connection', function (socket) {
             username: socket.username,
             gameId: socket.gameId
         });
+    });
+
+    socket.on('endgame', function(msg){
+        var url = 'http://' + host +':' + port + '/save_message/';
+
+        // when the request finishes
+        xhttp.onreadystatechange = function() {
+            // it checks if the request was succeeded
+            if(this.readyState === 4 && this.status === 200) {
+                // if the value returned from the view is error
+                if(xhttp.responseText === "error")
+                    console.log("error saving message");
+                // if the value returned from the view is success
+                else if(xhttp.responseText === "success")
+                    console.log("the message was posted successfully");
+            }
+        };
+
+        msg[gameId] = game.Id;
+        msg[player1] = socket.username;
+        msg[player2] = oppDict[socket.username];
+
+        // prepares to send
+        xhttp.open('POST', url, true);
+        // sends the data to the view
+        xhttp.send(JSON.stringify(msg));
     });
 
     var removeGame = function (id) {
