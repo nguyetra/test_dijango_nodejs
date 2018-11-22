@@ -13,6 +13,7 @@ var port = '8000';
 var games = [];
 var waitingUsers = {};
 var users = {};
+var copyGame;
 
 
 io.on('connection', function (socket) {
@@ -54,6 +55,8 @@ io.on('connection', function (socket) {
             setColorUser: setColorUser
         };
 
+        copyGame = Object.assign({},game);
+
         socket.gameId = game.Id;
         users[msg].gameId = game.Id;
 
@@ -84,6 +87,10 @@ io.on('connection', function (socket) {
     socket.on('endgame', function(msg){
         var url = 'http://' + host +':' + port + '/save_game/';
 
+        msg['gameId'] = copyGame.Id;
+        msg['player1'] = copyGame.setColorUser['white'];
+        msg['player2'] = copyGame.setColorUser['black'];
+
         // when the request finishes
         xhttp.onreadystatechange = function() {
             // it checks if the request was succeeded
@@ -96,7 +103,6 @@ io.on('connection', function (socket) {
                     console.log("the message was posted successfully");
             }
         };
-
         // prepares to send
         xhttp.open('POST', url, true);
         // sends the data to the view

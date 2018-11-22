@@ -4,7 +4,6 @@ var nodejs_port = '4000';
 
 var game, board, socket, playerColor, nameColor;
 var checkLogout = '';
-var gameId, player1, player2;
 
 $(function () {
     socket = io(host + ':' + nodejs_port);
@@ -45,10 +44,6 @@ $(function () {
         $('#opponentname').append(oppDict);
         $('#page-lobby').hide();
 
-        gameId = msg.game.gameId;
-        player1 = username;
-        player2 = oppDict;
-
     });
 
     //draw board with new move
@@ -62,15 +57,10 @@ $(function () {
     
     socket.on('logout', function (msg) {
         checkLogout = msg.username;
-        winner = checkLogout !==  username ? username : checkLogout;
-        history= game.history();
-        socket.emit('endgame', {'gameId':gameId,'player1':player1, 'player2':player2, 'winner': winner, 'history': history.toString(), note : checkLogout });
-        
-        game = null;
+        updateStatus();
+
         board.destroy();
         socket.disconnect();
-        
-        updateStatus();
     });
 
     //////////////////////////////
@@ -136,14 +126,14 @@ var updateStatus = function () {
         if (game.in_checkmate() === true) {
             status = 'Game over, ' + moveUser + ' is in checkmate.';
             winner = moveUser !==  username ? username : moveUser;
-            history= game.history();
-            socket.emit('endgame', {'gameId':gameId,'player1':player1, 'player2':player2, 'winner': winner, 'history': history.toString(), note : '' });
+            var history = game.history().splice(0).toString();
+            socket.emit('endgame', {'winner': winner, 'history': history.toString(), note : '' });
         }
 
         else if (game.in_draw() === true) {
             status = 'Game over, drawn position';
-            history= game.history();
-            socket.emit('endgame', {'gameId':gameId,'player1':player1, 'player2':player2, 'winner': 'no winner', 'history': history.toString(), note : 'drawn position'});
+            var history = game.history().splice(0).toString();
+            socket.emit('endgame', {'winner': 'no winner', 'history': history.toString(), note : 'drawn position'});
         }
 
         else {
@@ -156,7 +146,10 @@ var updateStatus = function () {
         }
     }
     else {
-        var status = 'Game over, you win,  ' + checkLogout + ' is quitted.';
+        var status = 'Game over, you win,  ' + checkLogout + ' quitte.';
+        var history = game.history().splice(0).toString();
+        winner = checkLogout !==  username ? username : checkLogout;
+        socket.emit('endgame', {'winner': winner, 'history': history, note : checkLogout + ' quite' });
     }
     statusEl.html(status);
 };

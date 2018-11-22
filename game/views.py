@@ -17,13 +17,12 @@ def index(request):
 def save_game(request):
     if request.method == 'POST':
         msg_obj = json.loads(request.body.decode('utf-8'))
-
+        print(msg_obj)
         try:
-            msg = Game.objects.create(gameId=msg_obj['gameId'], player1=msg_obj['player1'], player2=msg_obj['player2'], winner = msg_obj['winner'], history = msg_obj['history'])
+            msg = Game.objects.create(gameId=msg_obj['gameId'], player1=msg_obj['player1'], player2=msg_obj['player2'], winner = msg_obj['winner'], history = msg_obj['history'], note =msg_obj['note'] )
             msg.save()
-        except:
-            print("error saving game")
-            return HttpResponse("error")
+        except Exception as ex:
+            print("error saving game: %s" % ex)
         return HttpResponse("success")
     else:
         return HttpResponseRedirect('/')
